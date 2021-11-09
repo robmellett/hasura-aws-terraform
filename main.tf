@@ -12,7 +12,7 @@ resource "aws_iam_service_linked_role" "ecs_service" {
 # -----------------------------------------------------------------------------
 
 resource "aws_acm_certificate" "hasura" {
-  domain_name       = "${var.hasura_subdomain}.${var.domain}"
+  domain_name       = "${var.hasura_subdomain}-dev.${var.domain}"
   validation_method = "DNS"
 
   lifecycle {
@@ -223,7 +223,7 @@ resource "aws_ecs_cluster" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_cloudwatch_log_group" "hasura" {
-  name = "/ecs/hasura"
+  name = "/ecs/hasura-dev"
 }
 
 # -----------------------------------------------------------------------------
@@ -238,7 +238,7 @@ data "aws_iam_policy_document" "hasura_log_publishing" {
       "logs:PutLogEventsBatch",
     ]
 
-    resources = ["arn:aws:logs:${var.region}:*:log-group:/ecs/hasura:*"]
+    resources = ["arn:aws:logs:${var.region}:*:log-group:/ecs/hasura-dev:*"]
   }
 }
 

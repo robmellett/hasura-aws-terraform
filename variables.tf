@@ -99,7 +99,7 @@ variable "additional_db_security_groups" {
 
 variable "create_iam_service_linked_role" {
   description = "Whether to create IAM service linked role for AWS ElasticSearch service. Can be only one per AWS account."
-  default     = true
+  default     = false
 }
 
 variable "ecs_cluster_name" {
