@@ -73,7 +73,7 @@ variable "rds_storage_encrypted" {
 }
 
 variable "az_count" {
-  description = "How many AZ's to create in the VPC"
+  description = "How many AZ's to create in the VPC. Cannot be less than 2"
   default     = 2
 }
 
