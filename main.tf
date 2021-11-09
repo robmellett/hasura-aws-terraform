@@ -297,11 +297,11 @@ locals {
     {
       name  = "HASURA_GRAPHQL_PG_CONNECTIONS",
       value = "100"
-    },
-    {
-      name  = "HASURA_GRAPHQL_JWT_SECRET",
-      value = "{\"type\":\"${var.hasura_jwt_secret_algo}\", \"key\": \"${var.hasura_jwt_secret_key}\"}"
     }
+    # {
+    #   name  = "HASURA_GRAPHQL_JWT_SECRET",
+    #   value = "{\"type\":\"${var.hasura_jwt_secret_algo}\", \"key\": \"${var.hasura_jwt_secret_key}\"}"
+    # }
   ]
 
   ecs_container_definitions = [
