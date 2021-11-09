@@ -1,3 +1,19 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+ 
+  # We add in the backend configuration
+  backend "s3" {
+    bucket                  = "terraform.robmellett.dev"
+    key                     = "hasura-dev/terraform.tfstate"
+    region                  = "ap-southeast-2"
+  }
+}
+
 # -----------------------------------------------------------------------------
 # Service role allowing AWS to manage resources required for ECS
 # -----------------------------------------------------------------------------
@@ -205,9 +221,9 @@ resource "aws_db_instance" "hasura" {
   backup_window               = "04:00-06:00"
   final_snapshot_identifier   = "hasura"
 
-  lifecycle {
-    prevent_destroy = true
-  }
+  # lifecycle {
+  #   prevent_destroy = true
+  # }
 }
 
 # -----------------------------------------------------------------------------
