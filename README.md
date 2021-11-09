@@ -71,6 +71,12 @@ module "hasura" {
 - `ecs_cluster_name` must only contain alphanumeric characters and start with a letter
 - `domain` must be a domain you have a Route 53 hosted zone for
 
+## Helpful Terraform Commands
+If you need to destory an environment
+```
+terraform destroy -var-file variables.tfvars
+```
+
 ## License
 
 Released under MIT License. Based on [Gordon Johnston](https://github.com/elgordino)'s proposed architecture.
