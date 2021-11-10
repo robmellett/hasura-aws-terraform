@@ -28,6 +28,7 @@ variable "app_subdomain" {
   description = "The Subdomain for your application that will make CORS requests to the hasura_subdomain"
   default     = "app"
 }
+
 variable "hasura_version_tag" {
   description = "The hasura graphql engine version tag"
   default     = "v2.0.9"
@@ -87,7 +88,7 @@ variable "vpc_enable_dns_hostnames" {
   default     = false
 }
 
-variable "environment" {
+variable "ecs_environment" {
   description = "Environment variables for ECS task: [ { name = \"foo\", value = \"bar\" }, ..]"
   default     = []
 }
@@ -100,9 +101,4 @@ variable "additional_db_security_groups" {
 variable "create_iam_service_linked_role" {
   description = "Whether to create IAM service linked role for AWS ElasticSearch service. Can be only one per AWS account."
   default     = false
-}
-
-variable "ecs_cluster_name" {
-  description = "The name to assign to the ECS cluster"
-  default     = "hasura-cluster"
 }

@@ -8,10 +8,14 @@ terraform {
  
   # We add in the backend configuration
   backend "s3" {
-    bucket                  = "terraform.robmellett.dev"
-    key                     = "hasura-dev/terraform.tfstate"
-    region                  = "ap-southeast-2"
+    bucket = "terraform.robmellett.dev"
+    key  = "hasura-dev/terraform.tfstate"
+    region = "ap-southeast-2"
   }
+}
+
+locals {
+  environment = terraform.workspace
 }
 
 # -----------------------------------------------------------------------------
@@ -28,7 +32,7 @@ resource "aws_iam_service_linked_role" "ecs_service" {
 # -----------------------------------------------------------------------------
 
 resource "aws_acm_certificate" "hasura" {
-  domain_name       = "${var.hasura_subdomain}-dev.${var.domain}"
+  domain_name       = "${var.hasura_subdomain}-${local.environment}.${var.domain}"
   validation_method = "DNS"
 
   lifecycle {
@@ -71,7 +75,7 @@ resource "aws_vpc" "hasura" {
   enable_dns_hostnames = var.vpc_enable_dns_hostnames
 
   tags = {
-    Name = "hasura"
+    Name = "hasura-${local.environment}"
   }
 }
 
@@ -83,7 +87,7 @@ resource "aws_subnet" "hasura_private" {
   vpc_id            = aws_vpc.hasura.id
 
   tags = {
-    Name = "hasura #${count.index} (private)"
+    Name = "hasura-${local.environment} #${count.index} (private)"
   }
 }
 
@@ -96,7 +100,7 @@ resource "aws_subnet" "hasura_public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "hasura #${var.az_count + count.index} (public)"
+    Name = "hasura-${local.environment} #${var.az_count + count.index} (public)"
   }
 }
 
@@ -105,7 +109,7 @@ resource "aws_internet_gateway" "hasura" {
   vpc_id = aws_vpc.hasura.id
 
   tags = {
-    Name = "hasura"
+    Name = "hasura-${local.environment}"
   }
 }
 
@@ -122,7 +126,7 @@ resource "aws_route" "internet_access" {
 
 # Internet to ALB
 resource "aws_security_group" "hasura_alb" {
-  name        = "hasura-alb"
+  name        = "hasura-${local.environment}-alb"
   description = "Allow access on port 443 only to ALB"
   vpc_id      = aws_vpc.hasura.id
 
@@ -143,7 +147,7 @@ resource "aws_security_group" "hasura_alb" {
 
 # ALB TO ECS
 resource "aws_security_group" "hasura_ecs" {
-  name        = "hasura-tasks"
+  name        = "hasura-${local.environment}-tasks"
   description = "allow inbound access from the ALB only"
   vpc_id      = aws_vpc.hasura.id
 
@@ -188,7 +192,7 @@ resource "aws_security_group" "hasura_rds" {
 # -----------------------------------------------------------------------------
 
 resource "aws_db_subnet_group" "hasura" {
-  name       = "hasura"
+  name       = "hasura-${local.environment}"
   subnet_ids = aws_subnet.hasura_private.*.id
 }
 
@@ -219,7 +223,7 @@ resource "aws_db_instance" "hasura" {
   copy_tags_to_snapshot       = true
   backup_retention_period     = 7
   backup_window               = "04:00-06:00"
-  final_snapshot_identifier   = "hasura"
+  final_snapshot_identifier   = "hasura-${local.environment}-${timestamp()}"
 
   # lifecycle {
   #   prevent_destroy = true
@@ -231,7 +235,7 @@ resource "aws_db_instance" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_ecs_cluster" "hasura" {
-  name = var.ecs_cluster_name
+  name = "hasura-${local.environment}-cluster"
 }
 
 # -----------------------------------------------------------------------------
@@ -239,7 +243,7 @@ resource "aws_ecs_cluster" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_cloudwatch_log_group" "hasura" {
-  name = "/ecs/hasura-dev"
+  name = "/ecs/hasura-${local.environment}"
 }
 
 # -----------------------------------------------------------------------------
@@ -254,7 +258,7 @@ data "aws_iam_policy_document" "hasura_log_publishing" {
       "logs:PutLogEventsBatch",
     ]
 
-    resources = ["arn:aws:logs:${var.region}:*:log-group:/ecs/hasura-dev:*"]
+    resources = ["arn:aws:logs:${var.region}:*:log-group:/ecs/hasura-${local.environment}:*"]
   }
 }
 
@@ -342,7 +346,7 @@ locals {
         }
       }
 
-      environment = flatten([local.ecs_environment, var.environment])
+      environment = flatten([local.ecs_environment, var.ecs_environment])
     }
   ]
 }
@@ -368,7 +372,7 @@ resource "aws_ecs_service" "hasura" {
     aws_cloudwatch_log_group.hasura,
     aws_alb_listener.hasura
   ]
-  name            = "hasura-service"
+  name            = "hasura-${local.environment}-service"
   cluster         = aws_ecs_cluster.hasura.id
   task_definition = aws_ecs_task_definition.hasura.arn
   desired_count   = var.multi_az == true ? "2" : "1"
@@ -382,7 +386,7 @@ resource "aws_ecs_service" "hasura" {
 
   load_balancer {
     target_group_arn = aws_alb_target_group.hasura.id
-    container_name   = "hasura"
+    container_name   = "hasura-${local.environment}"
     container_port   = "8080"
   }
 }
@@ -392,7 +396,7 @@ resource "aws_ecs_service" "hasura" {
 # -----------------------------------------------------------------------------
 
 resource "aws_s3_bucket" "hasura" {
-  bucket        = "hasura-${var.region}-${var.hasura_subdomain}-${var.domain}"
+  bucket        = "hasura-${local.environment}-${var.hasura_subdomain}-${var.domain}"
   acl           = "private"
   force_destroy = "true"
 }
