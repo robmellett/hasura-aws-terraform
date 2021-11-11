@@ -52,6 +52,10 @@ variable "hasura_console_enabled" {
   default     = "true"
 }
 
+variable "rds_host" {
+  description = "The hostname for RDS"
+}
+
 variable "rds_username" {
   description = "The username for RDS"
 }
