@@ -168,7 +168,7 @@ resource "aws_security_group" "hasura_ecs" {
 
 # ECS to RDS
 resource "aws_security_group" "hasura_rds" {
-  name        = "hasura-rds"
+  name        = "hasura-${local.environment}-rds"
   description = "allow inbound access from the hasura tasks only"
   vpc_id      = aws_vpc.hasura.id
 
@@ -223,7 +223,7 @@ resource "aws_db_instance" "hasura" {
   copy_tags_to_snapshot       = true
   backup_retention_period     = 7
   backup_window               = "04:00-06:00"
-  final_snapshot_identifier   = "hasura-${local.environment}-${timestamp()}"
+  # final_snapshot_identifier   = "hasura-${local.environment}-${timestamp()}"
 
   # lifecycle {
   #   prevent_destroy = true
